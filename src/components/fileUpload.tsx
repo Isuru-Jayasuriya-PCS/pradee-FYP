@@ -1,4 +1,4 @@
-import { ReactNode, useRef } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import {
   Button,
   FormControl,
@@ -20,11 +20,16 @@ type FileUploadProps = {
 };
 
 const FileUpload = (props: FileUploadProps) => {
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const { onFileUpload, register, accept, multiple, children } = props;
   const inputRef = useRef<HTMLInputElement | null>(null);
   const { ref, ...rest } = register as {
     ref: (instance: HTMLInputElement | null) => void;
   };
+
+  useEffect(() => {
+    console.log(uploadedImage);
+  }, [uploadedImage]);
 
   const handleClick = () => inputRef.current?.click();
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,8 +92,9 @@ const App = () => {
             accept={"image/*"}
             multiple
             register={register("file_", { validate: validateFiles })}
-            onFileUpload={function (file: File): void {
-              throw new Error("Function not implemented.");
+            onFileUpload={(file) => {
+              const imageUrl = URL.createObjectURL(file);
+              setUploadedImage(imageUrl);
             }}
           >
             <Button

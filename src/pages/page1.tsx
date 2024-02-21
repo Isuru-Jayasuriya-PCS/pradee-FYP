@@ -18,10 +18,12 @@ import {
   HStack,
   Textarea,
   IconButton,
+  Icon,
+  Input,
 } from "@chakra-ui/react";
 import * as React from "react";
 import { FaPlay } from "react-icons/fa";
-import { ReactNode, useState } from "react";
+import { ReactNode, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import FileUpload from "../components/fileUpload.tsx";
 import {
@@ -29,19 +31,25 @@ import {
   ArrowForwardIcon,
   ArrowRightIcon,
   ChevronRightIcon,
+  CloseIcon,
 } from "@chakra-ui/icons";
+import { FiFile, FiX } from "react-icons/fi";
 
 export type AppProps = BoxProps & {
   children: ReactNode;
 };
 
 export function Page1({ className, children, ...rest }: AppProps) {
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [uploadedImage, setUploadedImage] = useState<File | null>(null);
 
-  const handleFileUpload = (file: File) => {
-    const imageUrl = URL.createObjectURL(file);
-    console.log(imageUrl);
-    setUploadedImage(imageUrl);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleRemoveImage = () => {
+    setUploadedImage(null);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   return (
@@ -97,23 +105,61 @@ export function Page1({ className, children, ...rest }: AppProps) {
                 spacing="4"
               >
                 <LightMode>
-                  <FileUpload onFileUpload={handleFileUpload} />
+                  <Button
+                    leftIcon={<Icon as={FiFile} />}
+                    size="lg"
+                    colorScheme="blue"
+                    px="8"
+                    fontWeight="bold"
+                    fontSize="md"
+                    onClick={() => {
+                      if (fileInputRef.current) {
+                        fileInputRef.current.click();
+                      }
+                    }}
+                  >
+                    Upload
+                  </Button>
                 </LightMode>
               </Stack>
               <Stack alignItems="center">
-                {true && (
-                  <AspectRatio ratio={16 / 9} w="50%">
-                    <Image
-                      src="https://images.pexels.com/photos/325521/pexels-photo-325521.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
-                      objectPosition="top"
-                      objectFit="cover"
-                      fallback={<Skeleton />}
-                      alt="uploaded picture"
-                      borderRadius="xl"
+                {uploadedImage && (
+                  <Stack w="full" spacing={4} alignItems="center">
+                    <AspectRatio w="50%">
+                      <Image
+                        src={URL.createObjectURL(uploadedImage)}
+                        objectPosition="top"
+                        objectFit="cover"
+                        fallback={<Skeleton />}
+                        alt="uploaded picture"
+                        borderRadius="xl"
+                      />
+                    </AspectRatio>
+                    <IconButton
+                      mx="auto"
+                      colorScheme="red"
+                      aria-label=""
+                      onClick={handleRemoveImage}
+                      size="xs"
+                      icon={<CloseIcon />}
                     />
-                  </AspectRatio>
+                  </Stack>
                 )}
               </Stack>
+
+              <Input
+                type="file"
+                ref={fileInputRef}
+                style={{ display: "none" }}
+                name="uploadedImage"
+                accept="image/*"
+                onChange={(event) => {
+                  if (event.target.files && event.target.files.length > 0) {
+                    console.log(event.target.files[0]);
+                    setUploadedImage(event.target.files[0]);
+                  }
+                }}
+              />
             </Box>
           </Stack>
           <Flex
